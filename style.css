@@ -23,3 +23,4 @@
 
 /* Align the creative party with its copy, alongside the Psalm 23 scene. */
 section.fandom>div>.motion-stage{max-width:none;width:100%;margin:0 0 18px;align-self:start}.fandom>div{min-width:0}.fandom .faith-scene{display:block;width:100%;height:auto;object-fit:contain;mix-blend-mode:normal;border:1px solid #35472d}.fandom{align-items:center}@media(max-width:700px){section.fandom>div>.motion-stage{margin-left:0;margin-right:0}.fandom .faith-scene{margin-top:5px}}
+section.fandom>div>.motion-stage{max-height:none;margin-bottom:32px}
