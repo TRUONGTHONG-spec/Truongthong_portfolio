@@ -1,0 +1,2 @@
+/* Decorative TV playlist. The TV itself is a normal link to Work. */
+(()=>{const installation=document.querySelector('.tv-installation');if(!installation)return;const button=installation.querySelector('.tv-motion-button');button.addEventListener('click',()=>{const paused=installation.classList.toggle('is-paused');button.setAttribute('aria-pressed',String(paused));button.textContent=paused?'PLAY TV ▶':'PAUSE TV Ⅱ';});})();
