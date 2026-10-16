@@ -12,3 +12,6 @@ Typography: embedded Geist Pixel Square for display, embedded Space Grotesk for 
 Serve this folder with any static server. No build command or dependencies are required. Netlify publishes the repository root from `main` and automatically deploys new commits.
 
 The displayed work panels are clearly labeled project overviews. Final client deliverables and detailed case-study outcomes must be supplied separately.
+
+## Voxel illustrations
+`scenes.js` contains four embedded, optimized WebP illustrations and assigns them to `data-scene` images. The character appears standing with original game companions, designing while sitting on a monitor, cooking, and traveling. The generated 5×4 voxel icon atlas is embedded once in `style.css`; icon cells use CSS coordinates. Skill and software labels remain text for accessibility.
