@@ -4,6 +4,9 @@ Requires PyMuPDF and Pillow. No build step is needed on Netlify.
 """
 from pathlib import Path
 import sys, json, re, base64, io, html
+import xml.etree.ElementTree as ET
+ET.register_namespace("", "http://www.w3.org/2000/svg")
+ET.register_namespace("xlink", "http://www.w3.org/1999/xlink")
 import fitz
 from PIL import Image
 
@@ -62,14 +65,33 @@ CLIPS = {
 43:[(64,219,1900,1016)]}
 CATEGORIES={'all':'All projects','branding':'Branding','web':'Web design','app':'App & UI','campaigns':'Campaigns','print':'Print & packaging','illustration':'Illustration'}
 
-def encode(im, width=1500, quality=86):
+def encode(im, width=2400, quality=96, preserve_vector=False):
+ if preserve_vector and im.info.get('source_svg'):
+  svg=im.info['source_svg'].encode()
+  return 'data:image/svg+xml;base64,'+base64.b64encode(svg).decode(),im.info['source_width'],im.info['source_height']
  im=im.convert('RGB'); im.thumbnail((width,6000))
- out=io.BytesIO(); im.save(out,format='WEBP',quality=quality,method=6)
+ out=io.BytesIO(); im.save(out,format='WEBP',quality=quality,method=6,lossless=preserve_vector)
  return 'data:image/webp;base64,'+base64.b64encode(out.getvalue()).decode(),im.width,im.height
 
 def render(n,clip):
- pix=PDF[n-1].get_pixmap(matrix=fitz.Matrix(1.3,1.3),clip=fitz.Rect(clip),alpha=False)
- return Image.frombytes('RGB',[pix.width,pix.height],pix.samples)
+ page=PDF[n-1]
+ pix=page.get_pixmap(matrix=fitz.Matrix(2,2),clip=fitz.Rect(clip),alpha=False)
+ im=Image.frombytes('RGB',[pix.width,pix.height],pix.samples)
+ # Export PDF paths as real SVG, preserving outlined text and original image data.
+ original_crop=page.cropbox
+ page.set_cropbox(fitz.Rect(clip)&page.mediabox)
+ svg=ET.fromstring(page.get_svg_image(text_as_path=True))
+ page.set_cropbox(original_crop)
+ ns='{http://www.w3.org/2000/svg}';href='{http://www.w3.org/1999/xlink}href'
+ # The repeating 4096x2304 image is the PDF's decorative slide-paper background.
+ # It is unrelated to client artwork and wastes >1MB in every exported crop.
+ for node in svg.iter(ns+'image'):
+  if node.get('width')=='4096' and node.get('height')=='2304':
+   node.set(href,'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAAC0lEQVR4nGNgAAIAAAUAAXpeqz8AAAAASUVORK5CYII=')
+ bg=ET.Element(ns+'rect',{'x':'0','y':'0','width':'100%','height':'100%','fill':'#f4f1ed'})
+ svg.insert(0,bg)
+ im.info.update(source_svg=ET.tostring(svg,encoding='unicode'),source_width=round(clip[2]-clip[0]),source_height=round(clip[3]-clip[1]))
+ return im
 
 def url(p): return 'project-'+p['slug']+'.html'
 def head(title,description):
@@ -88,7 +110,7 @@ for index,p in enumerate(PROJECTS):
   for info in page.get_image_info(xrefs=True):
    if info['height']>1500 and info['height']/info['width']>2.2 and info['xref']:
     data=PDF.extract_image(info['xref']);pictures.append((Image.open(io.BytesIO(data['image'])),page.number+1))
- cover,w,h=encode(pictures[0][0],width=760,quality=82)
+ cover,w,h=encode(pictures[0][0],width=1400,quality=96)
  p['cover']=cover
  p['image_count']=len(pictures)
  links=[]
@@ -105,10 +127,11 @@ for index,p in enumerate(PROJECTS):
  if p['figma']: page+=f'<a class="case-source" href="{E(p["figma"][0])}" target="_blank" rel="noopener noreferrer">Explore the original Figma file <span>↗</span></a>'
  page+='<section class="case-gallery" aria-label="Project artwork">'
  for j,(im,n) in enumerate(pictures):
-  src,w,h=encode(im)
+  src,w,h=encode(im,preserve_vector=True)
   wide=j==0 or w/h>1.4
   alt=f'{p["client"]} — {p["scope"]}, artwork {j+1}'
-  page+=f'''<figure class="gallery-item {'gallery-wide' if wide else ''}"><button class="artwork-button" type="button" aria-label="Enlarge artwork {j+1}: {E(p['client'])}"><img src="{src}" alt="{E(alt)}" width="{w}" height="{h}" loading="{'eager' if j==0 else 'lazy'}" decoding="async"><span class="zoom-hint" aria-hidden="true">＋</span></button><figcaption><span>{j+1:02d} / {len(pictures):02d}</span><span>{E(p['client'])}</span></figcaption></figure>'''
+  display_width=760 if p['slug'] in ('dpi-final-project','coffee-house-signature','coffee-house-signature-renovation','mai-ca-phe','attack-campaign','gery-vietnam') else 1040
+  page+=f'''<figure class="gallery-item {'gallery-wide' if wide else ''}" style="--art-display-width:{display_width}px"><button class="artwork-button" type="button" aria-label="Enlarge artwork {j+1}: {E(p['client'])}"><img src="{src}" alt="{E(alt)}" width="{w}" height="{h}" loading="{'eager' if j==0 else 'lazy'}" decoding="async"><span class="zoom-hint" aria-hidden="true">＋</span></button><figcaption><span>{j+1:02d} / {len(pictures):02d}</span><span>{E(p['client'])}</span></figcaption></figure>'''
  page+='</section>'
  prev=PROJECTS[(index-1)%len(PROJECTS)];nxt=PROJECTS[(index+1)%len(PROJECTS)]
  page+=f'''<nav class="project-pagination" aria-label="Project navigation"><a href="{url(prev)}"><small>← Previous project</small><span>{E(prev['client'])}</span></a><a href="{url(nxt)}"><small>Next project →</small><span>{E(nxt['client'])}</span></a></nav><section class="case-contact"><p>Have something in mind?</p><a href="contact.html">Let’s make it happen ↗</a></section></main><dialog class="artwork-dialog" aria-label="Enlarged project artwork"><div class="lightbox-bar"><p id="lightbox-caption"></p><button type="button" class="lightbox-close" aria-label="Close enlarged artwork">CLOSE ×</button></div><div class="lightbox-scroll"><img alt=""></div></dialog>'''
