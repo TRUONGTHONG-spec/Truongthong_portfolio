@@ -146,3 +146,7 @@ page+='''</div><label class="archive-search"><span class="sr-only">Search by pro
 # Keep a readable source manifest alongside the generated pages.
 (ROOT/'portfolio-projects.json').write_text(json.dumps([{k:v for k,v in p.items() if k!='cover'} for p in PROJECTS],ensure_ascii=False,indent=2))
 print('Built',len(PROJECTS),'project pages and Work archive.')
+# Retain the separately sourced UTMB project when rebuilding the original PDF archive.
+if (ROOT/'project-vietnam-highlands-trail-utmb.html').exists():
+ import runpy
+ runpy.run_path(str(ROOT/'build-utmb.py'))['add_to_archive']()
