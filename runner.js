@@ -55,7 +55,32 @@ class ThongRunner {
   }
 }
 
-if(typeof module!=='undefined')module.exports=ThongRunner;
+// Original, lightweight chiptune. Audio is created only by a player gesture.
+class RunnerAudio{
+  constructor(){this.enabled=true;this.volume=.2;this.ctx=null;this.master=null;this.timer=null;this.voices=new Set();}
+  unlock(){if(!this.enabled)return false;try{if(!this.ctx){const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return false;this.ctx=new Audio();this.master=this.ctx.createGain();this.master.gain.value=this.volume*.2;this.master.connect(this.ctx.destination);}if(this.ctx.state==='suspended')this.ctx.resume().catch(()=>{});return true;}catch{return false;}}
+  tone(note,time,length=.12,level=.35,type='square'){
+    if(!this.ctx||!this.enabled)return;
+    const oscillator=this.ctx.createOscillator(),gain=this.ctx.createGain();oscillator.type=type;oscillator.frequency.value=440*Math.pow(2,(note-69)/12);
+    gain.gain.setValueAtTime(.0001,time);gain.gain.exponentialRampToValueAtTime(level,time+.006);gain.gain.exponentialRampToValueAtTime(.0001,time+length);
+    oscillator.connect(gain);gain.connect(this.master);this.voices.add(oscillator);oscillator.onended=()=>{this.voices.delete(oscillator);oscillator.disconnect();gain.disconnect();};oscillator.start(time);oscillator.stop(time+length+.015);
+  }
+  start(map){if(!this.enabled||this.timer!==null||!this.unlock())return;this.step=0;this.nextTime=this.ctx.currentTime+.04;
+    const melody=[72,76,79,76,81,79,76,74,72,76,79,84,81,79,76,0,74,77,81,77,79,77,74,72,71,74,79,83,81,79,74,0];
+    const shift={japan:2,korea:0,vietnam:5,europe:-2}[map]||0,beat=.17;
+    const schedule=()=>{while(this.nextTime<this.ctx.currentTime+.16){const i=this.step%32,note=melody[i];if(note)this.tone(note+shift,this.nextTime,.115,.32);if(i%4===0)this.tone([48,53,55,55][Math.floor(i/8)]+shift,this.nextTime,.23,.42,'triangle');if(i%2===0)this.tone(35,this.nextTime,.045,.12,'triangle');this.step++;this.nextTime+=beat;}};
+    schedule();this.timer=setInterval(schedule,70);
+  }
+  stop(){if(this.timer!==null)clearInterval(this.timer);this.timer=null;for(const voice of this.voices){try{voice.stop();}catch{}}this.voices.clear();}
+  setEnabled(value){if(!value)this.stop();this.enabled=value;}
+  setVolume(value){this.volume=Math.max(0,Math.min(1,value));if(this.master)this.master.gain.setTargetAtTime(this.volume*.2,this.ctx.currentTime,.025);}
+  effect(kind){if(!this.enabled||!this.ctx)return;const t=this.ctx.currentTime+.005;
+    if(kind==='jump'){this.tone(76,t,.07,.27);this.tone(83,t+.055,.08,.22);}
+    if(kind==='coin'){this.tone(88,t,.075,.35);this.tone(95,t+.065,.12,.28);}
+    if(kind==='over'){[67,63,55].forEach((n,i)=>this.tone(n,t+i*.09,.13,.25,'triangle'));}
+  }
+}
+if(typeof module!=='undefined'){module.exports=ThongRunner;module.exports.RunnerAudio=RunnerAudio;}
 if(typeof document!=='undefined')(()=>{
 const section=document.querySelector('#runner-game');if(!section)return;
 const desktop=matchMedia('(min-width: 901px) and (hover: hover) and (pointer: fine)');
@@ -64,10 +89,16 @@ const game=new ThongRunner();let best=0,raf=0,last=0,visible=false;try{best=Numb
 let map='vietnam';try{const saved=localStorage.getItem('thong-runner-map');if(RUNNER_MAPS[saved])map=saved;}catch{}
 const picker=document.createElement('div');picker.className='runner-map-picker';picker.innerHTML='<div class="runner-map-intro"><span>CHOOSE YOUR NEXT STOP</span><small class="runner-map-hint">Select a map, then click Play. Pause to change maps.</small></div><div class="runner-map-options" role="group" aria-label="Choose a game map"></div><p class="runner-map-detail"></p>';
 section.querySelector('.runner-track').before(picker);
+const music=new RunnerAudio();try{music.enabled=localStorage.getItem('thong-runner-sound')!=='off';const saved=localStorage.getItem('thong-runner-volume');if(saved!==null)music.setVolume(Number(saved));}catch{}
+const audioControls=document.createElement('div');audioControls.className='runner-audio-controls';audioControls.innerHTML='<span>8-BIT WORLD TOUR <small>Music starts when you play</small></span><div><button type="button" class="runner-sound" aria-label="Game sound"></button><label>VOLUME <input type="range" min="0" max="100" step="5" aria-label="Game volume"></label></div>';picker.after(audioControls);
+const soundButton=audioControls.querySelector('button'),volumeSlider=audioControls.querySelector('input');volumeSlider.value=String(Math.round(music.volume*100));
+function soundLabel(){soundButton.textContent=music.enabled?'♫ SOUND ON':'♫ SOUND OFF';soundButton.setAttribute('aria-pressed',String(music.enabled));}
+soundButton.addEventListener('click',()=>{music.setEnabled(!music.enabled);if(music.enabled&&game.state==='running')music.start(map);try{localStorage.setItem('thong-runner-sound',music.enabled?'on':'off');}catch{}soundLabel();});
+volumeSlider.addEventListener('input',()=>{music.setVolume(Number(volumeSlider.value)/100);try{localStorage.setItem('thong-runner-volume',String(music.volume));}catch{}});soundLabel();
 const mapButtons=[];
 for(const [id,m]of Object.entries(RUNNER_MAPS)){const b=document.createElement('button');b.type='button';b.className='runner-map-card';b.dataset.map=id;b.setAttribute('aria-label','Choose '+m.name+' map');b.innerHTML='<canvas width="318" height="75" aria-hidden="true"></canvas><span><b>'+m.name+'</b><small>'+m.title+'</small></span><i aria-hidden="true">'+m.code+'</i>';const mini=b.querySelector('canvas').getContext('2d');mini.scale(.3,.3);drawRunnerWorld(mini,id);b.addEventListener('click',()=>selectMap(id));picker.querySelector('.runner-map-options').append(b);mapButtons.push(b);}
 function updateMaps(){const m=RUNNER_MAPS[map];section.querySelector('.runner-frame').style.setProperty('--map-accent',m.accent);for(const b of mapButtons){b.setAttribute('aria-pressed',String(b.dataset.map===map));b.disabled=game.state==='running';}picker.querySelector('.runner-map-detail').textContent=m.detail+' / Jump over '+m.obstacle+'.';picker.querySelector('.runner-map-hint').textContent=game.state==='running'?'Pause your run to choose another destination.':'Select a map, then click Play. Changing maps starts a new run.';canvas.setAttribute('aria-label','Thong runner game in '+m.name+'. Click to play, then click or press Space to jump over '+m.obstacle+' and collect coins.');}
-function selectMap(id){if(game.state==='running'||id===map)return;cancelAnimationFrame(raf);raf=0;last=0;map=id;game.reset();button.hidden=false;button.textContent='PLAY '+RUNNER_MAPS[map].code+' ▶';pause.hidden=true;try{localStorage.setItem('thong-runner-map',map);}catch{}updateMaps();message(RUNNER_MAPS[map].name.toUpperCase()+' READY · Click Play, then click / Space / ↑ to jump.');render();}
+function selectMap(id){if(game.state==='running'||id===map)return;music.stop();cancelAnimationFrame(raf);raf=0;last=0;map=id;game.reset();button.hidden=false;button.textContent='PLAY '+RUNNER_MAPS[map].code+' ▶';pause.hidden=true;try{localStorage.setItem('thong-runner-map',map);}catch{}updateMaps();message(RUNNER_MAPS[map].name.toUpperCase()+' READY · Click Play, then click / Space / ↑ to jump.');render();}
 function block(x,y,w,h,color){ctx.fillStyle=color;ctx.fillRect(Math.round(x),Math.round(y),w,h);}
 function avatar(x,ground){const airborne=game.y>0,t=game.elapsed;const gait=game.state==='running'&&!airborne?Math.sin(t*22):0;const y=ground-76-game.y+(airborne?0:Math.abs(gait)*2);ctx.save();ctx.translate(x,y);ctx.scale(2,2);
  // A small cubic beanie, warm face, round glasses, green jacket and satchel.
@@ -79,11 +110,12 @@ function cactus(o){const x=o.x,y=206-o.h;if(map==='japan'){block(x,y,o.w,o.h,'#4
 function coin(c){const y=206-c.y,w=5+Math.abs(Math.cos(game.elapsed*6+c.x*.01))*11;block(c.x-w/2-2,y-10,w+4,20,'#a96b19');block(c.x-w/2,y-12,w,24,'#ffcd42');block(c.x-w/2+2,y-8,Math.max(2,w-4),16,'#ffe79a');block(c.x-1,y-6,2,12,'#d69b21');}
 function render(){ctx.clearRect(0,0,1060,250);drawRunnerWorld(ctx,map,game.distance,game.elapsed);if(game.state==='ready'){cactus({x:720,w:28,h:38});cactus({x:930,w:34,h:64});for(const c of [{x:360,y:70},{x:455,y:132},{x:740,y:110},{x:790,y:142},{x:980,y:100}])coin(c);}for(const o of game.obstacles)cactus(o);for(const c of game.coins)coin(c);for(const e of game.effects){ctx.globalAlpha=e.life*2;ctx.fillStyle='#ffdc66';ctx.font='bold 16px monospace';ctx.fillText('+25',e.x,e.y);ctx.globalAlpha=1;}avatar(116,206);scoreLabel.textContent=String(game.score).padStart(5,'0');coinLabel.textContent=String(game.collected).padStart(2,'0');speedLabel.textContent=(game.speed/340).toFixed(1)+'×';}
 function message(text){status.textContent=text;}
-function gameOver(){game.state='over';if(game.score>best){best=game.score;bestLabel.textContent=String(best).padStart(5,'0');try{localStorage.setItem('thong-runner-best',String(best));}catch{}}button.hidden=false;button.textContent='PLAY AGAIN ↻';pause.hidden=true;updateMaps();message(RUNNER_MAPS[map].name.toUpperCase()+' · GAME OVER · '+game.score+' points · '+game.collected+' coins. Try again or choose another map.');}
-function frame(now){raf=0;if(!desktop.matches||!visible||game.state!=='running')return;const dt=last?(now-last)/1000:0;last=now;game.step(dt);render();if(game.state==='over'){gameOver();return;}raf=requestAnimationFrame(frame);}
+function gameOver(){music.stop();music.effect('over');game.state='over';if(game.score>best){best=game.score;bestLabel.textContent=String(best).padStart(5,'0');try{localStorage.setItem('thong-runner-best',String(best));}catch{}}button.hidden=false;button.textContent='PLAY AGAIN ↻';pause.hidden=true;updateMaps();message(RUNNER_MAPS[map].name.toUpperCase()+' · GAME OVER · '+game.score+' points · '+game.collected+' coins. Try again or choose another map.');}
+function frame(now){raf=0;if(!desktop.matches||!visible||game.state!=='running')return;const dt=last?(now-last)/1000:0;last=now;const coinsBefore=game.collected;game.step(dt);if(game.collected>coinsBefore)music.effect('coin');render();if(game.state==='over'){gameOver();return;}raf=requestAnimationFrame(frame);}
 function loop(){if(!raf&&desktop.matches&&visible&&game.state==='running'){last=0;raf=requestAnimationFrame(frame);}}
-function act(){if(!desktop.matches)return;if(game.state==='ready'||game.state==='over'){game.start();button.hidden=true;pause.hidden=false;pause.textContent='PAUSE Ⅱ';canvas.focus({preventScroll:true});updateMaps();message(RUNNER_MAPS[map].name.toUpperCase()+' · RUNNING · Jump over '+RUNNER_MAPS[map].obstacle+'. Coins +25. Speed increases over time.');loop();}else if(game.state==='paused'){game.state='running';button.hidden=true;pause.hidden=false;pause.textContent='PAUSE Ⅱ';canvas.focus({preventScroll:true});updateMaps();message(RUNNER_MAPS[map].name.toUpperCase()+' · RUNNING · Click / Space / ↑ to jump.');loop();}else game.jump();}
-function suspend(){if(game.state==='running'){game.state='paused';cancelAnimationFrame(raf);raf=0;button.hidden=false;button.textContent='RESUME ▶';pause.hidden=true;pause.textContent='RESUME ▶';updateMaps();message('PAUSED · Resume your run or select another map to start fresh.');}}
+function act(){if(!desktop.matches)return;if(game.state==='ready'||game.state==='over'){game.start();music.stop();music.start(map);button.hidden=true;pause.hidden=false;pause.textContent='PAUSE Ⅱ';canvas.focus({preventScroll:true});updateMaps();message(RUNNER_MAPS[map].name.toUpperCase()+' · RUNNING · Jump over '+RUNNER_MAPS[map].obstacle+'. Coins +25. Speed increases over time.');loop();}else if(game.state==='paused'){game.state='running';music.start(map);button.hidden=true;pause.hidden=false;pause.textContent='PAUSE Ⅱ';canvas.focus({preventScroll:true});updateMaps();message(RUNNER_MAPS[map].name.toUpperCase()+' · RUNNING · Click / Space / ↑ to jump.');loop();}else if(game.jump())music.effect('jump');}
+function suspend(){music.stop();if(game.state==='running'){game.state='paused';cancelAnimationFrame(raf);raf=0;button.hidden=false;button.textContent='RESUME ▶';pause.hidden=true;pause.textContent='RESUME ▶';updateMaps();message('PAUSED · Resume your run or select another map to start fresh.');}}
 button.addEventListener('click',act);canvas.addEventListener('pointerdown',event=>{if(event.button!==0)return;canvas.focus({preventScroll:true});act();});canvas.addEventListener('keydown',event=>{if(['Space','ArrowUp','Enter'].includes(event.code)){event.preventDefault();if(!event.repeat)act();}});pause.addEventListener('click',()=>game.state==='running'?suspend():act());
+window.addEventListener('pagehide',()=>music.stop());
 new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(!visible)suspend();else{render();loop();}},{threshold:.3}).observe(section);document.addEventListener('visibilitychange',()=>{if(document.hidden)suspend();});desktop.addEventListener('change',()=>{if(!desktop.matches)suspend();else render();});updateMaps();button.textContent='PLAY '+RUNNER_MAPS[map].code+' ▶';message('CHOOSE YOUR MAP · Click Play, then click / Space / ↑ to jump. Coins +25.');render();
 })();

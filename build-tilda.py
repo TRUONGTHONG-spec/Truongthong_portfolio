@@ -3,7 +3,10 @@ Run after the base archive: python build-tilda.py /path/to/tilda-source
 With no source argument, refresh only the archive card and manifest.
 """
 from pathlib import Path
-import sys, json, re, io, html
+import sys, json, re, io, html, base64
+import xml.etree.ElementTree as ET
+ET.register_namespace('', 'http://www.w3.org/2000/svg')
+ET.register_namespace('xlink', 'http://www.w3.org/1999/xlink')
 import fitz
 from PIL import Image
 
@@ -35,7 +38,29 @@ def build(source):
         d=fitz.open(source/(name+'.pdf'))
         for index,page in enumerate(d):
             key=name if len(d)==1 else name+'-'+str(index+1)
-            filename='tilda-'+key+'.svg';(ROOT/filename).write_text(page.get_svg_image(text_as_path=True))
+            if name=='argmax-brochure':
+                pix=page.get_pixmap(matrix=fitz.Matrix(3,3),alpha=False)
+                im=Image.frombytes('RGB',[pix.width,pix.height],pix.samples)
+                buffer=io.BytesIO();im.save(buffer,'WEBP',lossless=True,method=6)
+                filename='tilda-'+key+'.webp';(ROOT/filename).write_bytes(buffer.getvalue())
+                assets[key]=(filename,im.width,im.height)
+                continue
+            filename='tilda-'+key+'.svg'
+            svg=page.get_svg_image(text_as_path=True)
+            start=svg.index('>',svg.index('<svg'))+1
+            svg=svg[:start]+'<rect width="100%" height="100%" fill="#ffffff"/>'+svg[start:]
+            root=ET.fromstring(svg)
+            cmyk={(i[2],i[3]):i[0] for i in page.get_images(full=True) if i[5]=='DeviceCMYK'}
+            for node in root.iter('{http://www.w3.org/2000/svg}image'):
+                href='{http://www.w3.org/1999/xlink}href'
+                value=node.get(href,'')
+                if value.startswith('data:'):
+                    embedded=Image.open(io.BytesIO(base64.b64decode(value.split(',',1)[1])))
+                    if embedded.mode=='CMYK':
+                        original=Image.open(io.BytesIO(d.extract_image(cmyk[embedded.size])['image'])).convert('RGB')
+                        buffer=io.BytesIO();original.save(buffer,'PNG')
+                        node.set(href,'data:image/png;base64,'+base64.b64encode(buffer.getvalue()).decode())
+            (ROOT/filename).write_text(ET.tostring(root,encoding='unicode'))
             assets[key]=(filename,round(page.rect.width),round(page.rect.height))
     def fig(name,caption,wide=False):
         src,w,h=assets[name]
