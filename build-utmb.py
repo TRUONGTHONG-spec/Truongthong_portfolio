@@ -18,8 +18,11 @@ def add_to_archive():
     text = re.sub(r'<article class="archive-card" data-project="utmb"[^>]*>.*?</article>', '', text, flags=re.S)
     card = f'''<article class="archive-card" data-project="utmb" data-work-category="branding" data-search="vietnam highlands trail utmb da lat dalat lam dong branding key visual medal merchandise pattern saola 2027"><a href="{PAGE}" aria-label="View Vietnam Highlands Trail by UTMB branding"><div class="archive-image"><img src="utmb-pinhatt-kv.webp" width="1675" height="939" alt="Vietnam Highlands Trail by UTMB — Pinhatt key visual" loading="eager" decoding="async"><span class="archive-open" aria-hidden="true">↗</span></div><div class="archive-meta"><span>Vietnam Highlands Trail by UTMB</span><span>NEW</span></div><h2>Meet you in the Highlands.</h2><p>Branding<span>View project ↗</span></p></a></article>'''
     text = text.replace('<div class="archive-grid">', '<div class="archive-grid">' + card)
-    text = text.replace('27 projects spanning', '28 projects spanning').replace('2016–2025 portfolio.', 'portfolio and Vietnam Highlands Trail branding presentation.')
-    text = text.replace('DESIGN ARCHIVE / 2016—2025', 'DESIGN ARCHIVE / SELECTED PROJECTS').replace('27 PROJECTS', '28 PROJECTS').replace('>27 projects</p>', '>28 projects</p>')
+    total=text.count('<article class="archive-card"')
+    text=re.sub(r'\d+ projects spanning',f'{total} projects spanning',text).replace('2016–2025 portfolio.', 'portfolio and selected branding presentations.')
+    text=text.replace('DESIGN ARCHIVE / 2016—2025', 'DESIGN ARCHIVE / SELECTED PROJECTS')
+    text=re.sub(r'\d+ PROJECTS · ONE CURIOUS DESIGNER',f'{total} PROJECTS · ONE CURIOUS DESIGNER',text)
+    text=re.sub(r'(id="project-count"[^>]*>)\d+ projects',lambda m:m[1]+f'{total} projects',text)
     work.write_text(text)
     manifest = ROOT / 'portfolio-projects.json'
     data = [p for p in json.loads(manifest.read_text()) if p['slug'] != SLUG]

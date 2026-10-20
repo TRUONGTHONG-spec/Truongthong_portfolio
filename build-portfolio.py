@@ -150,3 +150,6 @@ print('Built',len(PROJECTS),'project pages and Work archive.')
 if (ROOT/'project-vietnam-highlands-trail-utmb.html').exists():
  import runpy
  runpy.run_path(str(ROOT/'build-utmb.py'))['add_to_archive']()
+if (ROOT/'project-skyinq-tilda.html').exists():
+ import runpy
+ runpy.run_path(str(ROOT/'build-tilda.py'))['add_to_archive']()
