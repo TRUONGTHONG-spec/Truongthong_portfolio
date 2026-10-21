@@ -14,16 +14,6 @@
   status = 200
   force = true
 [[redirects]]
-  from = "/project-:slug.html"
-  to = "/project.html?slug=:slug"
-  status = 200
-  force = true
-[[redirects]]
-  from = "/project-:slug"
-  to = "/project.html?slug=:slug"
-  status = 200
-  force = true
-[[redirects]]
   from = "/editor.html"
   to = "/404.html"
   status = 404
@@ -32,4 +22,358 @@
   from = "/editor"
   to = "/404.html"
   status = 404
+  force = true
+
+[[redirects]]
+  from = "/projects/:slug"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-skyinq-tilda.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-skyinq-tilda"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-vietnam-highlands-trail-utmb.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-vietnam-highlands-trail-utmb"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-dpi-final-project.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-dpi-final-project"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-vietnam-football-campaigns.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-vietnam-football-campaigns"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-panasonic-social.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-panasonic-social"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-gery-vietnam.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-gery-vietnam"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-attack-campaign.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-attack-campaign"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-coffee-house-signature.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-coffee-house-signature"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-coffee-house-signature-renovation.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-coffee-house-signature-renovation"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-coffee-house-website.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-coffee-house-website"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-coffee-house-app.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-coffee-house-app"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-shopee-seller-campaigns.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-shopee-seller-campaigns"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-shopee-seller-landing-pages.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-shopee-seller-landing-pages"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-shopee-om-advertising.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-shopee-om-advertising"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-website.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-website"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-app.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-app"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-product-visuals.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-product-visuals"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-rewards.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-rewards"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-chill-he.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-chill-he"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-giftcards.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-giftcards"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-taste-of-summer.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-taste-of-summer"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-blind-box.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-highlands-blind-box"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-mai-ca-phe.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-mai-ca-phe"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-ai-cha-packaging.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-ai-cha-packaging"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-my-rewards-app.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-my-rewards-app"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-my-hero-app.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-my-hero-app"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-enc-hutech.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-enc-hutech"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-frame-furniture.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-frame-furniture"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-doodles-and-paintings.html"
+  to = "/project.html"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/project-doodles-and-paintings"
+  to = "/project.html"
+  status = 200
   force = true
