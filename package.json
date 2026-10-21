@@ -1,0 +1,22 @@
+{
+  "name": "portfolio-cms",
+  "version": "1.0.0",
+  "description": "The 29 Work cards use individual generated 3D pixel concept covers (`thumb-3d-*.webp`). Original client artwork remains on each project detail page. `work-thumbnails.json` maps each project to its cover; `work-thumbnail-prompts.json` records the scene briefs. Run `python apply-work-thumbnails.py` to reapply the covers after a content rebuild. The portfolio, UTMB and Tilda generators also preserve this mapping automatically.",
+  "main": "app.js",
+  "scripts": {
+    "build": "node cms-build.mjs",
+    "test": "node --test cms-core.test.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.5",
+    "@netlify/functions": "^6.0.3",
+    "@netlify/identity": "^2.0.0",
+    "esbuild": "^0.28.2",
+    "linkedom": "^0.18.13"
+  },
+  "private": true
+}
