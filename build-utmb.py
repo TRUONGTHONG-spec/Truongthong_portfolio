@@ -28,6 +28,9 @@ def add_to_archive():
     data = [p for p in json.loads(manifest.read_text()) if p['slug'] != SLUG]
     data.insert(0, dict(slug=SLUG, client='Vietnam Highlands Trail by UTMB', title='Meet you in the Highlands.', category='branding', role='Brand & visual design', scope='Key visuals · Pattern & icons · Medal concepts · Merchandise', edition='2027', source=SOURCE, image_count=19))
     manifest.write_text(json.dumps(data, ensure_ascii=False, indent=2))
+    if (ROOT/"work-thumbnails.json").exists():
+        import runpy
+        runpy.run_path(str(ROOT/"apply-work-thumbnails.py"))["apply"]()
 
 def build(pdf_path):
     doc = fitz.open(pdf_path)

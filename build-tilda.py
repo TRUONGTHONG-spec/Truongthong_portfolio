@@ -27,6 +27,9 @@ def add_to_archive():
     path=ROOT/'portfolio-projects.json';data=[p for p in json.loads(path.read_text()) if p['slug']!='skyinq-tilda']
     data.insert(0,dict(slug='skyinq-tilda',client='SkyinQ / Tilda',title='Brand consultant & brand design.',category='branding',role='Brand Consultant & Brand Design',scope='Campaign visuals · EMS icons · Brochure · Digital product visuals',image_count=6))
     path.write_text(json.dumps(data,ensure_ascii=False,indent=2))
+    if (ROOT/"work-thumbnails.json").exists():
+        import runpy
+        runpy.run_path(str(ROOT/"apply-work-thumbnails.py"))["apply"]()
 
 def build(source):
     source=Path(source);assets={}

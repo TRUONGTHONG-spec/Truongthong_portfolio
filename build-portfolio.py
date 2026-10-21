@@ -153,3 +153,8 @@ if (ROOT/'project-vietnam-highlands-trail-utmb.html').exists():
 if (ROOT/'project-skyinq-tilda.html').exists():
  import runpy
  runpy.run_path(str(ROOT/'build-tilda.py'))['add_to_archive']()
+
+# Preserve the generated 3D pixel cover artwork after a PDF rebuild.
+if (ROOT/"work-thumbnails.json").exists():
+ import runpy
+ runpy.run_path(str(ROOT/"apply-work-thumbnails.py"))["apply"]()

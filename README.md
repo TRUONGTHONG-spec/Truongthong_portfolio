@@ -1,5 +1,9 @@
 # Truong Thong — Pixel Portfolio
 
+### Work cover artwork
+
+The 29 Work cards use individual generated 3D pixel concept covers (`thumb-3d-*.webp`). Original client artwork remains on each project detail page. `work-thumbnails.json` maps each project to its cover; `work-thumbnail-prompts.json` records the scene briefs. Run `python apply-work-thumbnails.py` to reapply the covers after a content rebuild. The portfolio, UTMB and Tilda generators also preserve this mapping automatically.
+
 A black-and-lime, responsive designer portfolio with four real pages:
 - `index.html`: introduction and creative interests.
 - `about.html`: profile, strengths, tools, AI-agent workflow, experience, education and interests.
