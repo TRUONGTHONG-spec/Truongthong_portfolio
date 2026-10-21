@@ -72,3 +72,15 @@ export function createHandler({store,getUser,seed,uuid=()=>crypto.randomUUID(),n
  return json({error:'Không tìm thấy chức năng.'},404);
  }catch(error){if(!error.status)console.error('CMS request failed',error);return json({error:error.status?error.message:'Không thể hoàn tất yêu cầu. Nội dung công khai vẫn được giữ nguyên.'},error.status||500);}};
 }
+
+// A platform-verified JWT may contain identity claims but omit confirmedAt.
+// Read the canonical Identity record; never infer verification from client data.
+export async function resolveOwnerSession(getSession,readIdentityUser){
+ const session=await getSession();
+ if(!session||session.email?.toLowerCase()!==OWNER||session.confirmedAt)return session;
+ if(!session.id)return session;
+ let record;
+ try{record=await readIdentityUser(session.id);}catch{throw Object.assign(new Error('Không thể kiểm tra trạng thái xác minh email. Vui lòng thử lại sau.'),{status:503});}
+ if(record?.id!==session.id||record.email?.toLowerCase()!==OWNER)return null;
+ return record;
+}
